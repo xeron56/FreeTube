@@ -25,7 +25,7 @@
   margin: 5px;
   border-radius: 5px;
   display: flex;
-  float: var(--float-left-ltr-rtl-value);
+  float: inline-start;
 }
 
 .ft-tag-box li>span {
@@ -36,6 +36,13 @@
   word-break: break-all;
   hyphens: auto;
   user-select: text;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  accent-color: var(--accent-color);
 }
 
 .tag-icon {

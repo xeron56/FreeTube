@@ -10,6 +10,34 @@ class Settings {
       await this.upsert('currentLocale', currentLocale.value.replace('_', '-'))
     }
 
+    // In FreeTube 0.22.0 and earlier the external player arguments were displayed in a text box,
+    // with the user manually entering `;` to separate the different arguments.
+    // This is a one time migration that converts the old string to a JSON array
+    const externalPlayerCustomArgs = await db.settings.findOneAsync({ _id: 'externalPlayerCustomArgs' })
+
+    if (externalPlayerCustomArgs && !externalPlayerCustomArgs.value.startsWith('[')) {
+      let newValue = '[]'
+
+      if (externalPlayerCustomArgs.value.length > 0) {
+        newValue = JSON.stringify(externalPlayerCustomArgs.value.split(';'))
+      }
+
+      await this.upsert('externalPlayerCustomArgs', newValue)
+    }
+
+    // In FreeTube 0.23.0, the "Enable Theatre Mode by Default" setting was incoporated as an option
+    // of the "Default Viewing Mode" setting. This is a one time migration to preserve users'
+    // Theater Mode preference through this change.
+    const defaultTheatreMode = await db.settings.findOneAsync({ _id: 'defaultTheatreMode' })
+
+    if (defaultTheatreMode) {
+      if (defaultTheatreMode.value) {
+        await this.upsert('defaultViewingMode', 'theatre')
+      }
+
+      await db.settings.removeAsync({ _id: 'defaultTheatreMode' })
+    }
+
     return db.settings.findAsync({ _id: { $ne: 'bounds' } })
   }
 
@@ -31,12 +59,8 @@ class Settings {
     })
   }
 
-  static _findBounds() {
-    return db.settings.findOneAsync({ _id: 'bounds' })
-  }
-
-  static _findTheme() {
-    return db.settings.findOneAsync({ _id: 'baseTheme' })
+  static _findOne(_id) {
+    return db.settings.findOneAsync({ _id })
   }
 
   static _findSidenavSettings() {
@@ -168,7 +192,7 @@ class Playlists {
     return db.playlists.removeAsync({ _id, protected: { $ne: true } })
   }
 
-  static deleteVideoIdByPlaylistId({ _id, videoId, playlistItemId }) {
+  static deleteVideoIdByPlaylistId(_id, videoId, playlistItemId) {
     if (playlistItemId != null) {
       return db.playlists.updateAsync(
         { _id },
@@ -186,10 +210,10 @@ class Playlists {
     }
   }
 
-  static deleteVideoIdsByPlaylistId(_id, videoIds) {
+  static deleteVideoIdsByPlaylistId(_id, playlistItemIds) {
     return db.playlists.updateAsync(
       { _id },
-      { $pull: { videos: { videoId: { $in: videoIds } } } },
+      { $pull: { videos: { playlistItemId: { $in: playlistItemIds } } } },
       { upsert: true }
     )
   }
@@ -211,12 +235,30 @@ class Playlists {
   }
 }
 
+class SearchHistory {
+  static find() {
+    return db.searchHistory.findAsync({}).sort({ lastUpdatedAt: -1 })
+  }
+
+  static upsert(searchHistoryEntry) {
+    return db.searchHistory.updateAsync({ _id: searchHistoryEntry._id }, searchHistoryEntry, { upsert: true })
+  }
+
+  static delete(_id) {
+    return db.searchHistory.removeAsync({ _id: _id })
+  }
+
+  static deleteAll() {
+    return db.searchHistory.removeAsync({}, { multi: true })
+  }
+}
+
 class SubscriptionCache {
   static find() {
     return db.subscriptionCache.findAsync({})
   }
 
-  static updateVideosByChannelId({ channelId, entries, timestamp }) {
+  static updateVideosByChannelId(channelId, entries, timestamp) {
     return db.subscriptionCache.updateAsync(
       { _id: channelId },
       { $set: { videos: entries, videosTimestamp: timestamp } },
@@ -224,7 +266,7 @@ class SubscriptionCache {
     )
   }
 
-  static updateLiveStreamsByChannelId({ channelId, entries, timestamp }) {
+  static updateLiveStreamsByChannelId(channelId, entries, timestamp) {
     return db.subscriptionCache.updateAsync(
       { _id: channelId },
       { $set: { liveStreams: entries, liveStreamsTimestamp: timestamp } },
@@ -232,7 +274,7 @@ class SubscriptionCache {
     )
   }
 
-  static updateShortsByChannelId({ channelId, entries, timestamp }) {
+  static updateShortsByChannelId(channelId, entries, timestamp) {
     return db.subscriptionCache.updateAsync(
       { _id: channelId },
       { $set: { shorts: entries, shortsTimestamp: timestamp } },
@@ -240,7 +282,7 @@ class SubscriptionCache {
     )
   }
 
-  static updateShortsWithChannelPageShortsByChannelId({ channelId, entries }) {
+  static updateShortsWithChannelPageShortsByChannelId(channelId, entries) {
     return db.subscriptionCache.findOneAsync({ _id: channelId }, { shorts: 1 }).then((doc) => {
       if (doc == null) { return }
 
@@ -273,7 +315,7 @@ class SubscriptionCache {
     })
   }
 
-  static updateCommunityPostsByChannelId({ channelId, entries, timestamp }) {
+  static updateCommunityPostsByChannelId(channelId, entries, timestamp) {
     return db.subscriptionCache.updateAsync(
       { _id: channelId },
       { $set: { communityPosts: entries, communityPostsTimestamp: timestamp } },
@@ -290,12 +332,24 @@ class SubscriptionCache {
   }
 }
 
+function loadDatastores() {
+  return Promise.allSettled([
+    db.settings.loadDatabaseAsync(),
+    db.history.loadDatabaseAsync(),
+    db.profiles.loadDatabaseAsync(),
+    db.playlists.loadDatabaseAsync(),
+    db.searchHistory.loadDatabaseAsync(),
+    db.subscriptionCache.loadDatabaseAsync(),
+  ])
+}
+
 function compactAllDatastores() {
   return Promise.allSettled([
     db.settings.compactDatafileAsync(),
     db.history.compactDatafileAsync(),
     db.profiles.compactDatafileAsync(),
     db.playlists.compactDatafileAsync(),
+    db.searchHistory.compactDatafileAsync(),
     db.subscriptionCache.compactDatafileAsync(),
   ])
 }
@@ -305,7 +359,9 @@ export {
   History as history,
   Profiles as profiles,
   Playlists as playlists,
+  SearchHistory as searchHistory,
   SubscriptionCache as subscriptionCache,
 
+  loadDatastores,
   compactAllDatastores,
 }

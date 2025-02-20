@@ -18,6 +18,7 @@ const isDevMode = process.env.NODE_ENV === 'development'
 
 const { version: swiperVersion } = JSON.parse(fs.readFileSync(path.join(__dirname, '../node_modules/swiper/package.json')))
 
+/** @type {import('webpack').Configuration} */
 const config = {
   name: 'web',
   mode: process.env.NODE_ENV,
@@ -118,6 +119,7 @@ const config = {
   },
   plugins: [
     new webpack.DefinePlugin({
+      'process.platform': 'undefined',
       'process.env.IS_ELECTRON': false,
       'process.env.IS_ELECTRON_MAIN': false,
       'process.env.SUPPORTS_LOCAL_API': false,
@@ -184,18 +186,18 @@ config.plugins.push(
     'process.env.SHAKA_LOCALES_PREBUNDLED': JSON.stringify(SHAKA_LOCALES_PREBUNDLED)
   }),
   new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: path.join(__dirname, '../static/pwabuilder-sw.js'),
-          to: path.join(__dirname, '../dist/web/pwabuilder-sw.js'),
+    patterns: [
+      {
+        from: path.join(__dirname, '../static/pwabuilder-sw.js'),
+        to: path.join(__dirname, '../dist/web/pwabuilder-sw.js'),
+      },
+      {
+        from: path.join(__dirname, '../static'),
+        to: path.join(__dirname, '../dist/web/static'),
+        globOptions: {
+          dot: true,
+          ignore: ['**/.*', '**/locales/**', '**/pwabuilder-sw.js', '**/dashFiles/**', '**/storyboards/**'],
         },
-        {
-          from: path.join(__dirname, '../static'),
-          to: path.join(__dirname, '../dist/web/static'),
-          globOptions: {
-            dot: true,
-            ignore: ['**/.*', '**/locales/**', '**/pwabuilder-sw.js', '**/dashFiles/**', '**/storyboards/**'],
-          },
       },
       {
         from: path.join(__dirname, '../node_modules/shaka-player/ui/locales', `{${SHAKA_LOCALES_TO_BE_BUNDLED.join(',')}}.json`).replaceAll('\\', '/'),
@@ -205,6 +207,5 @@ config.plugins.push(
     ]
   })
 )
-
 
 module.exports = config

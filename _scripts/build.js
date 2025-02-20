@@ -6,6 +6,7 @@ const Platform = builder.Platform
 const Arch = builder.Arch
 const args = process.argv
 
+/** @type {Map<import('electron-builder').Platform, Map<import('electron-builder').Arch, Array<string>>>} */
 let targets
 const platform = os.platform()
 
@@ -16,7 +17,7 @@ if (platform === 'darwin') {
     arch = Arch.arm64
   }
 
-  targets = Platform.MAC.createTarget(['DMG','zip', '7z'], arch)
+  targets = Platform.MAC.createTarget(['DMG', 'zip', '7z'], arch)
 } else if (platform === 'win32') {
   let arch = Arch.x64
 

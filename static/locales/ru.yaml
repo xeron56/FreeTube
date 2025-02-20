@@ -33,6 +33,7 @@ Global:
   Shorts: Короткие видео
   Live: Трансляции
   Community: Сообщество
+  Sort By: Сортировать по
 
 # Search Bar
   Counts:
@@ -43,14 +44,11 @@ Global:
     Channel Count: 1 канал | {count} канала(ов)
     Comment Count: 1 комментарий | {count} комментариев
     Like Count: 1 лайк | {count} лайков
-  Input Tags:
-    Length Requirement: Длина тега должна составлять не менее {number} символов
 Search / Go to URL: 'Поиск / Перейти по адресу'
   # In Filter Button
 Search Filters:
   Search Filters: 'Фильтры поиска'
   Sort By:
-    Sort By: 'Упорядочивать по'
     Most Relevant: 'Наиболее подходящим'
     Rating: 'Оценке'
     Upload Date: 'Дате загрузки'
@@ -97,14 +95,10 @@ Search Filters:
 Subscriptions:
     # On Subscriptions Page
   Subscriptions: 'Подписки'
-  Latest Subscriptions: 'Последние подписки'
   'Your Subscription list is currently empty. Start adding subscriptions to see them here.': 'В
     настоящее время список подписок пуст. Если вы хотите импортировать свои подписки,
     вы можете перейти в Настройки данных и выбрать Импорт подписок или найти канал
     и подписаться на него.'
-  'Getting Subscriptions.  Please wait.': 'Получение подписок. Пожалуйста, подождите.'
-  Refresh Subscriptions: Обновить подписки
-  Getting Subscriptions. Please wait.: Получение подписок, подождите.
   This profile has a large number of subscriptions. Forcing RSS to avoid rate limiting: Эта
     учётная запись имеет большое количество подписок. Принудительно используется RSS,
     чтобы избежать ограничения скорости
@@ -142,7 +136,6 @@ User Playlists:
   Are you sure you want to delete this playlist? This cannot be undone: Ты действительно
     хочешь удалить эту подборку? Это действие необратимо.
   Sort By:
-    Sort By: Упорядочивать по
     NameAscending: А-Я
     NameDescending: Я-А
     EarliestCreatedFirst: Самые ранние
@@ -180,10 +173,10 @@ User Playlists:
         Нажмите здесь, чтобы отменить
       This playlist is already being used for quick bookmark.: Этот плейлист уже используется
         для быстрого создания закладок.
-      Playlist {playlistName} is the new quick bookmark playlist.: Плейлист {playlistName}
-        - это новый плейлист быстрых закладок.
       This playlist has a video with a duration error: Этот плейлист содержит хотя-бы
         одно видео без продолжтельности, оно будет отсротрированно как с нулевой продолжительностью.
+      Video has been removed. Click here to undo.: Видео было удалено. Нажмите здесь,
+        чтобы Нажмите здесь, чтобы отменить прсмотр
     Search for Videos: Поиск видео
   AddVideoPrompt:
     N playlists selected: '{playlistCount} выбрано'
@@ -239,6 +232,8 @@ User Playlists:
     уверены, что хотите удалить 1 просмотренное видео из этого плейлиста? Это нельзя
     отменить. | Вы уверены, что хотите удалить {playlistItemCount} просмотренных видео
     из этого плейлиста? Это нельзя отменить.
+  Export Playlist: Экспортировать этот плейлист
+  The playlist has been successfully exported: Плейлист успешно экспортирован
 History:
   # On History Page
   History: 'История'
@@ -254,8 +249,8 @@ Settings:
     General Settings: 'Общие'
     Fallback to Non-Preferred Backend on Failure: 'Откатить к непредпочтительному
       движку при сбое'
-    Enable Search Suggestions: 'Отображать поисковые предложения'
-    Default Landing Page: 'Целевая страница по умолчанию'
+    Enable Search Suggestions: 'Включить поисковые предложения'
+    Default Landing Page: 'Страница по умолчанию'
     Locale Preference: 'Язык приложения'
     Preferred API Backend:
       Preferred API Backend: 'Предпочитаемый движок API'
@@ -269,14 +264,14 @@ Settings:
       Thumbnail Preference: 'Настройка заставок'
       Default: 'По умолчанию'
       Beginning: 'В начале'
-      Middle: 'В середине'
+      Middle: 'По середине'
       End: 'В конце'
       Blur: Размытие
       Hidden: Скрыто
     Region for Trending: 'Регион подбора трендов'
         #! List countries
     Check for Latest Blog Posts: Проверять последние записи в блоге
-    Check for Updates: Проверять обновления
+    Check for Updates: Проверить на наличие новых версий
     View all Invidious instance information: Просмотреть все экземпляры Invidious
     System Default: Системные настройки по умолчанию
     Clear Default Instance: Очистить экземпляр по умолчанию
@@ -293,8 +288,10 @@ Settings:
       Open Link: Открыть ссылку
       External Link Handling: Обработка внешних ссылок
     Auto Load Next Page:
-      Label: Автоматически загружать следующую страницу
+      Label: Авто-загрузка следующей страницы
       Tooltip: Автоматическая загрузка дополнительных страниц и комментариев.
+    Open Deep Links In New Window: Открыть URL-адреса, переданные в FreeTube, в новом
+      окне
   Theme Settings:
     Theme Settings: 'Внешний вид'
     Match Top Bar with Main Color: 'Использовать основной цвет к верхней панели'
@@ -311,6 +308,9 @@ Settings:
       Nordic: Северный
       Solarized Dark: Соляризованная темнота
       Solarized Light: Солнечное освещение
+      Gruvbox Dark: Gruvbox Темный
+      Gruvbox Light: Gruvbox Светлый
+      Catppuccin Frappe: Фраппе с капучином
     Main Color Theme:
       Main Color Theme: 'Основной цвет темы'
       Red: 'Красный'
@@ -358,6 +358,30 @@ Settings:
       Solarized Cyan: Соляризованный голубой
       Solarized Violet: Соляризованный фиолетовый
       Solarized Green: Соляризованный зеленый
+      Gruvbox Dark Green: Gruvbox Темно-зеленый
+      Gruvbox Dark Blue: Gruvbox Темно-синий
+      Gruvbox Dark Purple: Gruvbox Темно-фиолетовый
+      Gruvbox Dark Aqua: Грувбокс темный аква
+      Gruvbox Light Red: Gruvbox Светло-красный
+      Gruvbox Light Blue: Gruvbox Светло-голубой
+      Gruvbox Light Purple: Gruvbox Светло-фиолетовый
+      Gruvbox Light Orange: Gruvbox Светло-оранжевый
+      Gruvbox Dark Yellow: Gruvbox Темно-желтый
+      Gruvbox Dark Orange: Gruvbox Темно-оранжевый
+      Catppuccin Frappe Sky: Фраппе "Кэтпуччин" Небо
+      Catppuccin Frappe Teal: Фраппе Catppuccin Тиловый
+      Catppuccin Frappe Yellow: Кэтпуччин Фраппе Желтый
+      Catppuccin Frappe Green: Фраппе "Кэтпуччин" зеленый
+      Catppuccin Frappe Rosewater: Фраппе с розовой водой
+      Catppuccin Frappe Flamingo: Кэтпуччин Фраппе Фламинго
+      Catppuccin Frappe Pink: Фраппе Catppuccin розовое
+      Catppuccin Frappe Mauve: Кэтпуччин Фраппе Сиреневый
+      Catppuccin Frappe Red: Кэтпуччин Фраппе Красный
+      Catppuccin Frappe Maroon: Фраппе Catppuccin бордовый
+      Catppuccin Frappe Peach: Фраппе Catppuccin Персик
+      Catppuccin Frappe Sapphire: Кэтпуччин Фраппе Сапфир
+      Catppuccin Frappe Blue: Кэтпуччин Фраппе Синий
+      Catppuccin Frappe Lavender: Кэтпуччи Фраппе Лаванда
     Secondary Color Theme: 'Вторичный цвет темы'
         #* Main Color Theme
     UI Scale: Масштаб интерфейса
@@ -367,11 +391,11 @@ Settings:
     Hide FreeTube Header Logo: Скрыть значок FreeTube
   Player Settings:
     Player Settings: 'Проигрыватель'
-    Play Next Video: 'Воспроизводить следующее видео'
+    Play Next Video: 'Автоматическое воспроизведение рекомендуемых видеороликов'
     Turn on Subtitles by Default: 'Субтитры по умолчанию включены'
     Autoplay Videos: 'Автовоспроизведение видео'
     Proxy Videos Through Invidious: 'Смотреть видео через прокси Invidious'
-    Autoplay Playlists: 'Автовоспроизведение подборок'
+    Autoplay Playlists: 'Автоматическое воспроизведение видео из списка'
     Enable Theatre Mode by Default: 'Включать режим широкого экрана'
     Default Volume: 'Громкость по умолчанию'
     Default Playback Rate: 'Скорость воспроизведения по умолчанию'
@@ -392,9 +416,8 @@ Settings:
       1440p: '1440p'
       4k: '4k'
       8k: '8k'
-    Playlist Next Video Interval: Задержка перед автовоспроизведением
     Scroll Volume Over Video Player: Прокрутка громкости поверх видеопроигрывателя
-    Next Video Interval: Шаг перехода на следующее видео
+    Next Video Interval: Таймер обратного отсчета для автоигры
     Display Play Button In Video Player: Отображать кнопку воспроизведения в видеопроигрывателе
     Fast-Forward / Rewind Interval: Шаг перемотки вперёд/назад
     Scroll Playback Rate Over Video Player: Прокрутка скорости воспроизведения поверх
@@ -415,41 +438,53 @@ Settings:
       File Name Tooltip: Вы можете использовать эти переменные. %Y Год 4 цифры. %M
         Месяц 2 цифры. %D День 2 цифры. %H Час 2 цифры. %N Минуты 2 цифры. %S Секунды
         2 цифры. %T Миллисекунды 3 цифры. %s Секунды видео. %t Миллисекунды видео
-        3 цифры. %i Идентификатор видео. Вы также можете использовать «\» или «/»
-        для создания подпапок.
+        3 цифры. %i Идентификатор видео.
     Enter Fullscreen on Display Rotate: Входить в полноэкранный режим при повороте
       дисплея
     Skip by Scrolling Over Video Player: Пропустить, прокручивая видеопроигрыватель
+    Autoplay Interruption Timer: Таймер прерывания автоигры
+    Default Viewing Mode:
+      Theater: Режим широко экрана
+      Default Viewing Mode: Режим просмотра по умолчанию
+      Full Screen: На весь экран
+      Picture in Picture: Режим "Картинка в картинке"
+      External Player: Внешний проигрыватель
   Subscription Settings:
     Subscription Settings: 'Подписки'
     Hide Videos on Watch: 'Скрывать видео после просмотра'
-    Fetch Feeds from RSS: Получать ленты из RSS
-    Fetch Automatically: Автоматически получать ленту
-    Only Show Latest Video for Each Channel: Показывать только последние видео для
-      каждого канала
-    Confirm Before Unsubscribing: Подтвердить, прежде чем отписаться
+    Fetch Feeds from RSS: Загружать Ленты из RSS
+    Fetch Automatically: Автоматически загружать ленту
+    Confirm Before Unsubscribing: Запрашивать Подтверждение Перед Отпиской
 
+    'Limit the number of videos displayed for each channel': Ограничить количество
+      видео, отображаемых на каждом канале
+    To: В
   Privacy Settings:
-    Watch history has been cleared: История просмотров очищена
-    Are you sure you want to remove your entire watch history?: Выполнить удаление
-      всей истории просмотра?
-    Remove Watch History: Удалить историю просмотров
+    Watch history has been cleared: История Просмотров очищена
+    Are you sure you want to remove your entire watch history?: Вы уверены, что хотите
+      удалить всю историю просмотра?
+    Remove Watch History: Удалить Историю Просмотров
     Search cache has been cleared: Поисковой кэш был очищен
     Are you sure you want to clear out your search cache?: Выполнить очистку кэша
       поиска?
     Clear Search Cache: Очистить кэш поиска
-    Save Watched Progress: Сохранять ход просмотра
-    Remember History: Запоминать историю
+    Save Watched Progress: Сохранять Прогресс Просмотра
+    Remember History: Сохранять Историю Просмотров
     Privacy Settings: Конфиденциальность
-    Are you sure you want to remove all subscriptions and profiles?  This cannot be undone.: Выполнить
-      удаление всех подписок и учётных записей?  Невозможно отменить.
-    Remove All Subscriptions / Profiles: Удалить все подписки/профили
-    Save Watched Videos With Last Viewed Playlist: Сохранить просмотренные видео с
-      последней просмотренной подборкой
-    Are you sure you want to remove all your playlists?: Ты действительно хочешь удалить
-      все свои подборки?
-    All playlists have been removed: Все подборки были удалены
-    Remove All Playlists: Удалить все подборки
+    Are you sure you want to remove all subscriptions and profiles?  This cannot be undone.: Вы
+      уверены, что хотите удалить все подписки и профили? Это действие безвозвратно.
+    Remove All Subscriptions / Profiles: Удалить все Подписки/Профили
+    Save Watched Videos With Last Viewed Playlist: Сохранить Просмотренные Видео С
+      Последним Просмотренным Плейлистом
+    Are you sure you want to remove all your playlists?: Вы действительно хотите удалить
+      все свои Плейлисты?
+    All playlists have been removed: Все Плейлисты были удалены
+    Remove All Playlists: Удалить Все Плейлисты
+    Clear Search History and Cache: Очистить Историю Поиска и Кэш
+    Are you sure you want to clear out your search history and cache?: Вы уверены,
+      что хотите очистить историю поиска и кэш?
+    Search history and cache have been cleared: История поиска и кэш были очищены
+    Remember Search History: Сохранять Историю Поисков
   Data Settings:
     How do I import my subscriptions?: Как импортировать подписки?
     Unknown data key: Неизвестный ключ данных
@@ -478,7 +513,6 @@ Settings:
     Export Subscriptions: Экспортировать подписки
     Import Subscriptions: Импортировать подписки
     Select Export Type: Выбрать тип экспорта
-    Select Import Type: Выбрать тип импорта
     Data Settings: Данные
     Manage Subscriptions: Управление подписками
     Import Playlists: Импортировать подборки
@@ -501,13 +535,13 @@ Settings:
   Distraction Free Settings:
     Hide Live Chat: Скрыть чат прямой трансляции
     Hide Popular Videos: Скрыть популярные видео
-    Hide Trending Videos: Скрыть видео в тренде
-    Hide Recommended Videos: Скрыть рекомендуемые видео
+    Hide Trending Videos: Скрыть Видео в Тренде
+    Hide Recommended Videos: Скрыть Рекомендуемые Видео
     Distraction Free Settings: Отвлекающие элементы
-    Hide Comment Likes: Скрыть лайки в комментариях
-    Hide Channel Subscribers: Скрыть подписчиков канала
-    Hide Video Likes And Dislikes: Скрыть лайки и дизлайки к видео
-    Hide Video Views: Скрыть просмотры видео
+    Hide Comment Likes: Скрыть Лайки Комментариев
+    Hide Channel Subscribers: Скрыть Количество Подписчиков
+    Hide Video Likes And Dislikes: Скрыть Лайки и Дизлайки
+    Hide Video Views: Скрыть Количество Просмотров
     Hide Active Subscriptions: Скрыть действующие подписки
     Hide Playlists: Скрыть подборки
     Hide Live Streams: Скрыть прямые трансляции
@@ -521,19 +555,19 @@ Settings:
     Display Titles Without Excessive Capitalisation: Отображать заголовки без сплошных
       заглавных букв и знаков препинания
     Hide Featured Channels: Скрыть избранные каналы
-    Hide Channel Playlists: Скрыть подборки канала
-    Hide Channel Community: Скрыть сообщество канала
-    Hide Channel Shorts: Скрыть короткие видео канала
+    Hide Channel Playlists: Скрыть вкладку "Списки воспроизведения" канала
+    Hide Channel Community: Скрыть вкладку "Сообщество" канала
+    Hide Channel Shorts: Скрыть вкладку "Шорты" канала
     Sections:
-      Side Bar: Боковая полоса
-      Channel Page: Страница канала
-      Watch Page: Страница просмотра
+      Side Bar: Боковая Панель
+      Channel Page: Страница Канала
+      Watch Page: Страница Просмотра
       General: Основные
-      Subscriptions Page: Страница подписок
-    Hide Channel Releases: Скрыть выпуски канала
+      Subscriptions Page: Страница Подписок
+    Hide Channel Releases: Скрыть вкладку "Релизы" канала
     Hide Subscriptions Videos: Скрыть видео из подписок
     Hide Subscriptions Live: Скрыть трансляции из подписок
-    Hide Channel Podcasts: Скрыть звукопередачи канала
+    Hide Channel Podcasts: Скрыть вкладку "Подкасты" канала
     Hide Subscriptions Shorts: Скрыть короткие видео из подписок
     Hide Profile Pictures in Comments: Скрыть изображения профилей в комментариях
     Hide Channels Invalid: Указанный идентификатор канала недействителен
@@ -547,6 +581,8 @@ Settings:
       текст
     Hide Videos and Playlists Containing Text Placeholder: Слово, часть слова, или
       выражение
+    Hide Channel Home: Скрыть вкладку "Главная" канала
+    Show Added Items: Показать добавленные элементы
   The app needs to restart for changes to take effect. Restart and apply change?: Чтобы
     изменения вступили в силу, необходимо перезапустить приложение. Перезапустить
     и применить изменения?
@@ -566,6 +602,10 @@ Settings:
     Ip: Ip
     Enable Tor / Proxy: Включить Tor/Прокси
     Proxy Settings: Прокси
+    Proxy Warning: FreeTube не имеет встроенного прокси, но может подключаться к внешнему
+      прокси, например, к запущенному на вашей машине Tor или к внешнему прокси, например,
+      SOCKS5, предоставляемому некоторыми VPN. Если прокси включен, убедитесь, что
+      ваш прокси/Tor настроен правильно, иначе FreeTube не сможет получать данные.
   SponsorBlock Settings:
     Notify when sponsor segment is skipped: Уведомлять о пропущенном сегменте
     'SponsorBlock API Url (Default is https://sponsor.ajay.app)': Сетевой адрес SponsorBlock
@@ -613,8 +653,6 @@ Settings:
       при включении. Желательно сделать резервные копии. Используйте на своё усмотрение!
   Password Dialog:
     Password: Пароль
-    Password Incorrect: Неверный пароль
-    Unlock: Разблокировать
     Enter Password To Unlock: Введите пароль для разблокировки настроек
   Password Settings:
     Password Settings: Пароль
@@ -660,7 +698,6 @@ Channel:
   Unsubscribe: 'Отписаться'
   Search Channel: 'Поиск на канале'
   Your search results have returned 0 results: 'По вашему запросу ничего не найдено'
-  Sort By: 'Сортировать по'
   Videos:
     Videos: 'Видео'
     This channel does not currently have any videos: 'На этом канале в настоящее время
@@ -722,6 +759,9 @@ Channel:
     Releases: Выпуски
     This channel does not currently have any releases: На этом канале пока нет ни
       одного выпуска
+  Home:
+    Home: Дом
+    View Playlist: Просмотреть плейлист
 Video:
   Mark As Watched: 'Отметить как просмотренное'
   Remove From History: 'Удалить из истории'
@@ -743,46 +783,14 @@ Video:
   Enable Live Chat: 'Включить чат трансляции'
   Live Chat is currently not supported in this build.: 'В настоящее время чат трансляции
     в этой версии не поддерживается.'
-  'Chat is disabled or the Live Stream has ended.': 'Чат отключён или прямая трансляция
-    завершена.'
   Live chat is enabled. Chat messages will appear here once sent.: 'Чат трансляции
     включён. Сообщения чата будут отображаться здесь после отправки.'
   'Live Chat is currently not supported with the Invidious API. A direct connection to YouTube is required.': 'Чат
     трансляции в настоящее время не поддерживается Invidious API. Требуется прямое
     подключение к YouTube.'
   Published:
-    Jan: 'Янв'
-    Feb: 'Фев'
-    Mar: 'Мар'
-    Apr: 'Апр'
-    May: 'Май'
-    Jun: 'Июн'
-    Jul: 'Июл'
-    Aug: 'Авг'
-    Sep: 'Сен'
-    Oct: 'Окт'
-    Nov: 'Ноя'
-    Dec: 'Дек'
-    Second: 'Секунда'
-    Seconds: 'Секунд'
-    Hour: 'Час'
-    Hours: 'Часов'
-    Day: 'День'
-    Days: 'Дней'
-    Week: 'Неделя'
-    Weeks: 'Недель'
-    Month: 'Месяц'
-    Months: 'Месяцев'
-    Year: 'Год'
-    Years: 'Лет'
-    Ago: 'Назад'
-    Upcoming: 'Премьера'
-    Minutes: Минут
-    Minute: Минута
-    Less than a minute: Менее минуты
     In less than a minute: Меньше чем через минуту
   Published on: 'Размещено'
-  Publicationtemplate: '{number} {unit} назад'
 #& Videos
   Autoplay: Автовоспроизведение
   Play Previous Video: Воспроизвести предыдущее видео
@@ -828,15 +836,12 @@ Video:
     playlist: подборка
     video: видео
     OpenInTemplate: Открыть в {externalPlayer}
-  Premieres on: Премьеры
-  Premieres in: Премьеры в
   Premieres: Премьеры
   Show Super Chat Comment: Показать комментарий «Супер Чата»
   Scroll to Bottom: Прокрутите вниз
   Upcoming: Предстоящее
   'Live Chat is unavailable for this stream. It may have been disabled by the uploader.': Чат
     прямой трансляции недоступен. Возможно, он был отключён владельцем канала.
-  Pause on Current Video: Остановиться на текущем видео
   Hide Channel: Скрыть канал
   Unhide Channel: Показать канал
   More Options: Больше настроек
@@ -869,15 +874,25 @@ Video:
     Take Screenshot: Сделать Снимок Экрана
     Show Stats: Показать Статистику
     Hide Stats: Скрыть Статистику
+    Autoplay is on: Включить авто воспроизведение
+    Autoplay is off: Отключить авто воспроизведение
   IP block: YouTube заблокировал ваш IP-адрес для просмотра видео. Пожалуйста, попробуйте
     переключиться на другой VPN или прокси.
-Videos:
-  #& Sort By
-  Sort By:
-    Newest: 'Новым'
-    Oldest: 'Старым'
-    #& Most Popular
+  MembersOnly: Видео только для подписчиков нельзя смотреть на FreeTube, так как для
+    них требуется вход в Google и платное членство на канале пользователя, загрузившего
+    подписку.
+  Unlisted: Отсутствует в списках
+  AgeRestricted: Видео с возрастными ограничениями нельзя смотреть через FreeTube,
+    так как для этого требуется вход в Google и использование подтвержденной учетной
+    записи YouTube.
+  DeArrow:
+    Show Original Details: Показать стандартные свойства
+    Show Modified Details: Показать модифицированные свойства
 #& Playlists
+  DRMProtected: Видео, защищенное DRM, не может быть воспроизведено в FreeTube, так
+    как оно требует использования проприетарных компонентов с закрытым исходным кодом.
+    Если вы хотите посмотреть это видео, пожалуйста, смотрите его на официальном сайте
+    YouTube в веб-браузере с поддержкой DRM.
 Playlist:
   #& About
   View Full Playlist: 'Посмотреть всю подборку'
@@ -888,7 +903,6 @@ Playlist:
 #& Views
   Playlist: Подборка
   Sort By:
-    Sort By: Сортировать по
     AuthorAscending: Автор (от А до Я)
     AuthorDescending: Автор (Z-A)
     DateAddedNewest: Последние добавленные первыми
@@ -898,6 +912,8 @@ Playlist:
     Custom: Пользовательский
     VideoDurationAscending: Продолжительность (Сначала кратчайшие)
     VideoDurationDescending: Продолжительность (Сначала длиннейшие)
+    PublishedNewest: Последний опубликованный первый
+    PublishedOldest: Самая ранняя публикация
 Change Format:
   Change Media Formats: 'Изменить форматы видео'
   Use Dash Formats: 'Использовать форматы DASH'
@@ -935,7 +951,6 @@ Comments:
   Click to View Comments: 'Нажмите, чтобы просмотреть комментарии'
   Getting comment replies, please wait: 'Получение ответов на комментарии, пожалуйста,
     подождите'
-  Show Comments: 'Показать комментарии'
   Hide Comments: 'Скрыть комментарии'
   # Context: View 10 Replies, View 1 Reply
   View: 'Вид'
@@ -945,10 +960,8 @@ Comments:
   There are no comments available for this video: 'К этому видео нет комментариев'
   Load More Comments: 'Загрузить больше комментариев'
   There are no more comments for this video: К этому видео больше нет комментариев
-  No more comments available: Больше комментариев нет
   Newest first: Новым
   Top comments: Лучшим комментариям
-  Sort by: Упорядочивать по
   Show More Replies: Показать больше ответов
   From {channelName}: от {channelName}
   And others: и других
@@ -990,7 +1003,6 @@ Profile:
     по умолчанию
   Profile has been created: Профиль был создан
   Your profile name cannot be empty: Имя профиля не может быть пустым
-  Profile could not be found: Не удалось найти профиль
   All subscriptions will also be deleted.: Все подписки также будут удалены.
   Are you sure you want to delete this profile?: Хотите удалить этот профиль?
   Delete Profile: Удалить профиль
@@ -1054,6 +1066,9 @@ Tooltips:
     External Link Handling: "Выберите действие при нажатии на ссылку, которая не может
       быть открыта во FreeTube.\nПо умолчанию FreeTube откроет ссылку в вашем браузере
       по умолчанию.\n"
+    Open Deep Links In New Window: URL-адреса, передаваемые FreeTube, например, с
+      помощью расширений браузера или аргументов командной строки, открываются в новом
+      окне.
   Subscription Settings:
     Fetch Feeds from RSS: Если эта настройка включена, FreeTube будет получать вашу
       ленту подписок с помощью RSS, вместо метода по умолчанию. RSS работает быстрее
@@ -1079,7 +1094,7 @@ Tooltips:
       видео в стиле MPV.
   External Player Settings:
     Custom External Player Arguments: Любые пользовательские аргументы командной строки,
-      разделенные точкой с запятой (';'), которые вы хотите передать внешнему проигрывателю.
+      которые вы хотите передать внешнему проигрывателю.
     Ignore Warnings: Скрыть предупреждения, когда текущий внешний проигрыватель не
       поддерживает текущее действие (например, обратный порядок подборок и другие).
     Custom External Player Executable: По умолчанию FreeTube будет считать, что выбранный
@@ -1124,11 +1139,12 @@ External link opening has been disabled in the general settings: Открыти�
   ссылок отключено в настройках
 Search Bar:
   Clear Input: Очистить
+  Remove: Удалить
 Are you sure you want to open this link?: Вы действительно хотите открыть эту ссылку?
 Starting download: Запуск загрузки «{videoTitle}»
 Downloading has completed: '«{videoTitle}» закончил загрузку'
 Downloading failed: Возникла проблема с загрузкой «{videoTitle}»
-Screenshot Success: Снимок экрана сохранён как «{filePath}»
+Screenshot Success: Сохраненный скриншот
 Screenshot Error: Снимок экрана не удался. {error}
 New Window: Новое окно
 Channels:
@@ -1148,16 +1164,13 @@ Chapters:
     текущий раздел: {chapterName}'
   'Chapters list hidden, current chapter: {chapterName}': 'Список разделов скрыт,
     текущий раздел: {chapterName}'
+  Key Moments: Основные моменты
 Preferences: Настройки
 Ok: Хорошо
 Hashtag:
   Hashtag: Распределительная метка
   This hashtag does not currently have any videos: Этой распределительной метки пока
     нет ни у одного видео
-Playlist will not pause when current video is finished: Подборка не будет останавливаться,
-  если текущее видео закончится
-Playlist will pause when current video is finished: Подборка остановится, если текущее
-  видео закончится
 Channel Unhidden: '{channel} удалён из канального фильтровщика'
 Channel Hidden: '{channel} добавлен в канальный фильтровщик'
 Age Restricted:
@@ -1191,3 +1204,76 @@ Search Listing:
     3D: 3D
 'Blocked opening potentially unsafe URL': 'Заблокировано открытие потенциально небезопасного
   URL: "{url}".'
+KeyboardShortcutTemplate: '{label} ({shortcut})'
+shortcutJoinOperator: +
+Keys:
+  alt: Alt
+  ctrl: Ctrl
+  arrowdown: Стрелка вниз
+  arrowleft: Стрелка влево
+  arrowright: Стрелка вправо
+  arrowup: Стрелка вверх
+  shift: Shift
+  enter: Enter
+  plus: Плюс
+Right-click or hold to see history: ПКМ или зажми для просмотра истории
+KeyboardShortcutPrompt:
+  Captions: Включение/выключение титров
+  Focus Secondary Search: Сосредоточьтесь на вторичной строке поиска (если она есть)
+  Picture in Picture: Переключение режима картинка в картинке
+  Large Rewind: Перемотка на 10 секунд / Перемотка видео на основе текущей скорости
+    воспроизведения видео
+  Play: Переключение воспроизведения/паузы
+  Large Fast Forward: Перемотка на 10 секунд вперед / ускоренная перемотка видео на
+    основе текущей скорости воспроизведения видео
+  Mute: Отключить звук
+  Sections:
+    App:
+      Situational: 'Приложение: Ситуационный'
+      General: 'Приложение: Общее'
+    Video:
+      Playback: 'Видео: Воспроизведение'
+      General: 'Видео: Общее'
+  Show Keyboard Shortcuts: Показать сочетания клавиш
+  History Backward: Перейти на одну страницу
+  Keyboard Shortcuts: Ярлыки клавиатуры
+  History Forward: Переместить одну страницу
+  New Window: Создать новое окно
+  Navigate to Settings: Перейдите на страницу Настройки
+  Navigate to History: Перейдите на страницу История
+  Refresh: Обновляйте ленту с последними материалами
+  Stats: Показать статистику видео
+  Fullscreen: Переключить полноэкранный режим
+  Close Window: Закрыть окно
+  Volume Down: Уменьшить громкость
+  Last Frame: Предыдущий кадр (при паузе)
+  Last Chapter: Последняя глава
+  Next Chapter: Следующая глава
+  Small Rewind: Перемотать назад на X секунд на основе интервала перемотки и текущей
+    скорости воспроизведения видео
+  Small Fast Forward: Перемотать вперед на X секунд на основе интервала быстрой перемотки
+    и текущей скорости воспроизведения видео
+  Decrease Video Speed: Уменьшить скорость воспроизведения видео на основе интервала
+    скорости воспроизведения
+  Increase Video Speed: Увеличить скорость воспроизведения видео на основе интервала
+    скорости воспроизведения
+  Full Window: Переключить на полноэкранный режим
+  Theatre Mode: Переключить на театральный режим
+  Force Restart Window: Принудительно перезапустить окно
+  Toggle Developer Tools: Включить/выключить инструменты разработчика
+  Reset Zoom: Сбросить уровень масштабирования
+  Zoom In: Увеличить масштаб
+  Zoom Out: Уменьшить масштаб
+  Focus Search: Перевести фокус на строку поиска
+  Next Frame: Следующий кадр (при паузе)
+  Volume Up: Увеличить громкость
+  Take Screenshot: Сделать Снимок Экрана
+  Minimize Window: Свернуть окно
+  Restart Window: Перезапустить окно
+  Search in New Window: Выполнить поиск в отдельном окне
+  Skip by Tenths: Пропустить видео на определённый процент (3 пропуска для 30%)
+Description:
+  Expand Description: '...больше'
+  Collapse Description: Показать меньше
+Autoplay Interruption Timer: Автоигра отменена из-за {autoplayInterruptionIntervalHours}
+  часов бездействия

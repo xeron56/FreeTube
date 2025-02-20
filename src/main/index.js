@@ -11,6 +11,8 @@ import {
   DBActions,
   SyncEvents,
   ABOUT_BITCOIN_ADDRESS,
+  KeyboardShortcuts,
+  DefaultFolderKind,
 } from '../constants'
 import * as baseHandlers from '../datastores/handlers/base'
 import { extractExpiryTimestamp, ImageCache } from './ImageCache'
@@ -22,13 +24,35 @@ import { brotliDecompress } from 'zlib'
 import contextMenu from 'electron-context-menu'
 
 import packageDetails from '../../package.json'
+import { generatePoToken } from './poTokenGenerator'
 
 const brotliDecompressAsync = promisify(brotliDecompress)
 
 if (process.argv.includes('--version')) {
+  console.log(`v${packageDetails.version} Beta`) // eslint-disable-line no-console
+  app.exit()
+} else if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  printHelp()
   app.exit()
 } else {
-  runApp()
+  // Only allow single instance of the application
+  // Exit if we didn't get the lock, because another instance already has it
+  if (process.env.NODE_ENV !== 'development' && !app.requestSingleInstanceLock()) {
+    app.exit()
+  } else {
+    baseHandlers.loadDatastores()
+    runApp()
+  }
+}
+
+function printHelp() {
+  // eslint-disable-next-line no-console
+  console.log(`\
+usage: ${process.argv0} [options...] [url]
+Options:
+  --help, -h           show this message, then exit
+  --version            print the current version, then exit
+  --new-window         reuse an existing instance if possible`)
 }
 
 function runApp() {
@@ -208,14 +232,6 @@ function runApp() {
   let mainWindow
   let startupUrl
 
-  if (process.platform === 'linux') {
-    // Enable hardware acceleration via VA-API with OpenGL if no other feature flags are found
-    // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/gpu/vaapi.md
-    if (!app.commandLine.hasSwitch('enable-features')) {
-      app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecodeLinuxGL')
-    }
-  }
-
   const userDataPath = app.getPath('userData')
 
   // command line switches need to be added before the app ready event first
@@ -246,21 +262,28 @@ function runApp() {
   }
 
   if (process.env.NODE_ENV !== 'development') {
-    // Only allow single instance of the application
-    const gotTheLock = app.requestSingleInstanceLock()
-    if (!gotTheLock) {
-      app.quit()
-    }
-
     app.on('second-instance', (_, commandLine, __) => {
-      // Someone tried to run a second instance, we should focus our window
-      if (mainWindow && typeof commandLine !== 'undefined') {
-        if (mainWindow.isMinimized()) mainWindow.restore()
-        mainWindow.focus()
-
+      // Someone tried to run a second instance
+      if (typeof commandLine !== 'undefined') {
         const url = getLinkUrl(commandLine)
-        if (url) {
-          mainWindow.webContents.send(IpcChannels.OPEN_URL, url)
+        if (mainWindow && mainWindow.webContents) {
+          if (commandLine.includes('--new-window')) {
+            // The user wants to create a new window in the existing instance
+            if (url) startupUrl = url
+            createWindow({
+              showWindowNow: true,
+              replaceMainWindow: true,
+            })
+          } else {
+            // Just focus the main window (instead of starting a new instance)
+            if (mainWindow.isMinimized()) mainWindow.restore()
+            mainWindow.focus()
+
+            if (url) mainWindow.webContents.send(IpcChannels.OPEN_URL, url)
+          }
+        } else {
+          if (url) startupUrl = url
+          createWindow()
         }
       }
     })
@@ -424,24 +447,9 @@ function runApp() {
         requestHeaders.Referer = 'https://www.youtube.com/'
         requestHeaders.Origin = 'https://www.youtube.com'
 
-        // Make iOS requests work and look more realistic
-        if (requestHeaders['x-youtube-client-name'] === '5') {
-          delete requestHeaders.Referer
-          delete requestHeaders.Origin
-          delete requestHeaders['Sec-Fetch-Site']
-          delete requestHeaders['Sec-Fetch-Mode']
-          delete requestHeaders['Sec-Fetch-Dest']
-          delete requestHeaders['sec-ch-ua']
-          delete requestHeaders['sec-ch-ua-mobile']
-          delete requestHeaders['sec-ch-ua-platform']
-
-          requestHeaders['User-Agent'] = requestHeaders['x-user-agent']
-          delete requestHeaders['x-user-agent']
-        } else {
-          requestHeaders['Sec-Fetch-Site'] = 'same-origin'
-          requestHeaders['Sec-Fetch-Mode'] = 'same-origin'
-          requestHeaders['X-Youtube-Bootstrap-Logged-In'] = 'false'
-        }
+        requestHeaders['Sec-Fetch-Site'] = 'same-origin'
+        requestHeaders['Sec-Fetch-Mode'] = 'same-origin'
+        requestHeaders['X-Youtube-Bootstrap-Logged-In'] = 'false'
       } else if (urlObj.origin.endsWith('.googlevideo.com') && urlObj.pathname === '/videoplayback') {
         requestHeaders.Referer = 'https://www.youtube.com/'
         requestHeaders.Origin = 'https://www.youtube.com'
@@ -455,7 +463,7 @@ function runApp() {
           requestHeaders.Authorization = invidiousAuthorization.authorization
         }
       }
-       
+
       callback({ requestHeaders })
     })
 
@@ -466,7 +474,7 @@ function runApp() {
       if (responseHeaders) {
         delete responseHeaders['set-cookie']
       }
-       
+
       callback({ responseHeaders })
     })
 
@@ -626,6 +634,8 @@ function runApp() {
     }
   }
 
+  const ROOT_APP_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:9080' : 'app://bundle/index.html'
+
   async function createWindow(
     {
       replaceMainWindow = true,
@@ -634,7 +644,7 @@ function runApp() {
       searchQueryText = null
     } = { }) {
     // Syncing new window background to theme choice.
-    const windowBackground = await baseHandlers.settings._findTheme().then((setting) => {
+    const windowBackground = await baseHandlers.settings._findOne('baseTheme').then((setting) => {
       if (!setting) {
         return nativeTheme.shouldUseDarkColors ? '#212121' : '#f1f1f1'
       }
@@ -662,6 +672,12 @@ function runApp() {
           return '#002B36'
         case 'solarized-light':
           return '#fdf6e3'
+        case 'gruvbox-dark':
+          return '#282828'
+        case 'gruvbox-light':
+          return '#fbf1c7'
+        case 'catppuccin-frappe':
+          return '#303446'
         case 'system':
         default:
           return nativeTheme.shouldUseDarkColors ? '#212121' : '#f1f1f1'
@@ -730,7 +746,7 @@ function runApp() {
       height: 800
     })
 
-    const boundsDoc = await baseHandlers.settings._findBounds()
+    const boundsDoc = await baseHandlers.settings._findOne('bounds')
     if (typeof boundsDoc?.value === 'object') {
       const { maximized, fullScreen, ...bounds } = boundsDoc.value
       const windowVisible = screen.getAllDisplays().some(display => {
@@ -759,23 +775,14 @@ function runApp() {
     // If called multiple times
     // Duplicate menu items will be added
     if (replaceMainWindow) {
-       
       setMenu()
     }
 
     // load root file/url
-    if (process.env.NODE_ENV === 'development') {
-      let devStartupURL = 'http://localhost:9080'
-      if (windowStartupUrl != null) {
-        devStartupURL = windowStartupUrl
-      }
-      newWindow.loadURL(devStartupURL)
+    if (windowStartupUrl != null) {
+      newWindow.loadURL(windowStartupUrl)
     } else {
-      if (windowStartupUrl != null) {
-        newWindow.loadURL(windowStartupUrl)
-      } else {
-        newWindow.loadURL('app://bundle/index.html')
-      }
+      newWindow.loadURL(ROOT_APP_URL)
     }
 
     if (typeof searchQueryText === 'string' && searchQueryText.length > 0) {
@@ -826,10 +833,11 @@ function runApp() {
     })
   }
 
-  ipcMain.once(IpcChannels.APP_READY, () => {
+  ipcMain.on(IpcChannels.APP_READY, () => {
     if (startupUrl) {
-      mainWindow.webContents.send(IpcChannels.OPEN_URL, startupUrl)
+      mainWindow.webContents.send(IpcChannels.OPEN_URL, startupUrl, { isLaunchLink: true })
     }
+    startupUrl = null
   })
 
   function relaunch() {
@@ -877,6 +885,10 @@ function runApp() {
     })
   })
 
+  ipcMain.handle(IpcChannels.GENERATE_PO_TOKEN, (_, visitorData) => {
+    return generatePoToken(visitorData)
+  })
+
   ipcMain.on(IpcChannels.ENABLE_PROXY, (_, url) => {
     session.defaultSession.setProxy({
       proxyRules: url
@@ -888,6 +900,43 @@ function runApp() {
     session.defaultSession.setProxy({})
     session.defaultSession.closeAllConnections()
   })
+
+  // #region navigation history
+
+  const NAV_HISTORY_DISPLAY_LIMIT = 15
+  // Math.trunc but with a bitwise OR so that it can be calcuated at build time and the number inlined
+  const HALF_OF_NAV_HISTORY_DISPLAY_LIMIT = (NAV_HISTORY_DISPLAY_LIMIT / 2) | 0
+
+  ipcMain.handle(IpcChannels.GET_NAVIGATION_HISTORY, ({ sender }) => {
+    const activeIndex = sender.navigationHistory.getActiveIndex()
+    const length = sender.navigationHistory.length()
+
+    let end
+
+    if (activeIndex < HALF_OF_NAV_HISTORY_DISPLAY_LIMIT) {
+      end = Math.min(length - 1, NAV_HISTORY_DISPLAY_LIMIT - 1)
+    } else if (length - activeIndex < HALF_OF_NAV_HISTORY_DISPLAY_LIMIT + 1) {
+      end = length - 1
+    } else {
+      end = activeIndex + HALF_OF_NAV_HISTORY_DISPLAY_LIMIT
+    }
+
+    const dropdownOptions = []
+
+    for (let index = end; index >= Math.max(0, end + 1 - NAV_HISTORY_DISPLAY_LIMIT); --index) {
+      const routeLabel = sender.navigationHistory.getEntryAtIndex(index)?.title
+
+      dropdownOptions.push({
+        label: routeLabel,
+        value: index - activeIndex,
+        active: index === activeIndex
+      })
+    }
+
+    return dropdownOptions
+  })
+
+  // #endregion navigation history
 
   ipcMain.handle(IpcChannels.OPEN_EXTERNAL_LINK, (_, url) => {
     if (typeof url === 'string') {
@@ -929,12 +978,16 @@ function runApp() {
     return app.getPath('pictures')
   })
 
-  ipcMain.handle(IpcChannels.SHOW_OPEN_DIALOG, async ({ sender }, options) => {
-    const senderWindow = findSenderWindow(sender)
-    if (senderWindow) {
-      return await dialog.showOpenDialog(senderWindow, options)
-    }
-    return await dialog.showOpenDialog(options)
+  // Allows programmatic toggling of fullscreen without accompanying user interaction.
+  // See: https://developer.mozilla.org/en-US/docs/Web/Security/User_activation#transient_activation
+  ipcMain.on(IpcChannels.REQUEST_FULLSCREEN, ({ sender }) => {
+    sender.executeJavaScript('document.querySelector("video.player").ui.getControls().toggleFullScreen()', true)
+  })
+
+  // Allows programmatic toggling of picture-in-picture mode without accompanying user interaction.
+  // See: https://developer.mozilla.org/en-US/docs/Web/Security/User_activation#transient_activation
+  ipcMain.on(IpcChannels.REQUEST_PIP, ({ sender }) => {
+    sender.executeJavaScript('document.querySelector("video.player").ui.getControls().togglePiP()', true)
   })
 
   ipcMain.handle(IpcChannels.SHOW_SAVE_DIALOG, async ({ sender }, options) => {
@@ -951,6 +1004,86 @@ function runApp() {
     })
   }
 
+  ipcMain.on(IpcChannels.CHOOSE_DEFAULT_FOLDER, async (event, kind) => {
+    if (!isFreeTubeUrl(event.senderFrame.url) || (kind !== DefaultFolderKind.DOWNLOADS && kind !== DefaultFolderKind.SCREENSHOTS)) {
+      return
+    }
+
+    const settingId = kind === DefaultFolderKind.DOWNLOADS ? 'downloadFolderPath' : 'screenshotFolderPath'
+
+    let currentPath = (await baseHandlers.settings._findOne(settingId))?.value
+
+    if (typeof currentPath !== 'string' || currentPath.length === 0) {
+      currentPath = app.getPath(kind === DefaultFolderKind.DOWNLOADS ? 'downloads' : 'pictures')
+    }
+
+    const dialogOptions = {
+      defaultPath: currentPath,
+      properties: ['openDirectory']
+    }
+
+    let result
+
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (window) {
+      result = await dialog.showOpenDialog(window, dialogOptions)
+    } else {
+      result = await dialog.showOpenDialog(dialogOptions)
+    }
+
+    if (result.canceled) {
+      return
+    }
+
+    await baseHandlers.settings.upsert(settingId, result.filePaths[0])
+
+    const syncPayload = {
+      event: SyncEvents.GENERAL.UPSERT,
+      data: {
+        _id: settingId,
+        value: result.filePaths[0]
+      }
+    }
+
+    BrowserWindow.getAllWindows().forEach((window) => {
+      window.webContents.send(IpcChannels.SYNC_SETTINGS, syncPayload)
+    })
+  })
+
+  ipcMain.handle(IpcChannels.WRITE_SCREENSHOT, async (event, filename, arrayBuffer) => {
+    if (!isFreeTubeUrl(event.senderFrame.url) || typeof filename !== 'string' || !(arrayBuffer instanceof ArrayBuffer)) {
+      return
+    }
+
+    const screenshotFolderPath = await baseHandlers.settings._findOne('screenshotFolderPath')
+
+    let directory
+    if (screenshotFolderPath && screenshotFolderPath.value.length > 0) {
+      directory = screenshotFolderPath.value
+    } else {
+      directory = path.join(app.getPath('pictures'), 'FreeTube')
+    }
+
+    directory = path.normalize(directory)
+
+    const filePath = path.resolve(directory, filename)
+
+    // Ensure that we are only writing inside of the expected directory
+    if (path.dirname(filePath) !== directory) {
+      throw new Error('Invalid save location')
+    }
+
+    try {
+      await asyncFs.mkdir(directory, { recursive: true })
+
+      await asyncFs.writeFile(filePath, new DataView(arrayBuffer))
+    } catch (error) {
+      console.error('WRITE_SCREENSHOT failed', error)
+      // throw a new error so that we don't expose the real error to the renderer
+      throw new Error('Failed to save')
+    }
+  })
+
   ipcMain.on(IpcChannels.STOP_POWER_SAVE_BLOCKER, (_, id) => {
     powerSaveBlocker.stop(id)
   })
@@ -959,12 +1092,39 @@ function runApp() {
     return powerSaveBlocker.start('prevent-display-sleep')
   })
 
-  ipcMain.on(IpcChannels.CREATE_NEW_WINDOW, (_e, { windowStartupUrl = null, searchQueryText = null } = { }) => {
+  ipcMain.on(IpcChannels.CREATE_NEW_WINDOW, (event, path, query, searchQueryText) => {
+    if (!isFreeTubeUrl(event.senderFrame.url)) {
+      return
+    }
+
+    if (path == null && query == null && searchQueryText == null) {
+      createWindow({ replaceMainWindow: false, showWindowNow: true })
+      return
+    }
+
+    if (
+      typeof path !== 'string' ||
+      (query != null && typeof query !== 'object') ||
+      (searchQueryText != null && typeof searchQueryText !== 'string')
+    ) {
+      return
+    }
+
+    if (path.charAt(0) !== '/') {
+      path = `/${path}`
+    }
+
+    let windowStartupUrl = `${ROOT_APP_URL}#${path}`
+
+    if (query) {
+      windowStartupUrl += '?' + new URLSearchParams(query).toString()
+    }
+
     createWindow({
       replaceMainWindow: false,
       showWindowNow: true,
-      windowStartupUrl: windowStartupUrl,
-      searchQueryText: searchQueryText
+      windowStartupUrl,
+      searchQueryText
     })
   })
 
@@ -1006,7 +1166,12 @@ function runApp() {
 
       return contents.buffer
     } catch (e) {
-      console.error(e)
+      // Don't log the error if the file doesn't exist as we'll just fetch it from YouTube
+      // this usually happens when YouTube updates their player JavaScript
+      if (e.code !== 'ENOENT') {
+        console.error(e)
+      }
+
       return undefined
     }
   })
@@ -1046,6 +1211,12 @@ function runApp() {
           return await baseHandlers.settings.find()
 
         case DBActions.GENERAL.UPSERT:
+          // These two are only allowed to be changed by the CHOOSE_DEFAULT_FOLDER IPC action
+          // to avoid the "write to default folder" IPC calls being abused to write to arbitrary locations
+          if (data._id === 'downloadFolderPath' || data._id === 'screenshotFolderPath') {
+            return null
+          }
+
           await baseHandlers.settings.upsert(data._id, data.value)
           syncOtherWindows(
             IpcChannels.SYNC_SETTINGS,
@@ -1271,11 +1442,7 @@ function runApp() {
           return null
 
         case DBActions.PLAYLISTS.DELETE_VIDEO_ID:
-          await baseHandlers.playlists.deleteVideoIdByPlaylistId({
-            _id: data._id,
-            videoId: data.videoId,
-            playlistItemId: data.playlistItemId,
-          })
+          await baseHandlers.playlists.deleteVideoIdByPlaylistId(data._id, data.videoId, data.playlistItemId)
           syncOtherWindows(
             IpcChannels.SYNC_PLAYLISTS,
             event,
@@ -1284,9 +1451,12 @@ function runApp() {
           return null
 
         case DBActions.PLAYLISTS.DELETE_VIDEO_IDS:
-          await baseHandlers.playlists.deleteVideoIdsByPlaylistId(data._id, data.videoIds)
-          // TODO: Syncing (implement only when it starts being used)
-          // syncOtherWindows(IpcChannels.SYNC_PLAYLISTS, event, { event: '_', data })
+          await baseHandlers.playlists.deleteVideoIdsByPlaylistId(data._id, data.playlistItemIds)
+          syncOtherWindows(
+            IpcChannels.SYNC_PLAYLISTS,
+            event,
+            { event: SyncEvents.PLAYLISTS.DELETE_VIDEOS, data }
+          )
           return null
 
         case DBActions.PLAYLISTS.DELETE_ALL_VIDEOS:
@@ -1319,6 +1489,51 @@ function runApp() {
 
   // *********** //
 
+  // ************** //
+  // Search History
+  ipcMain.handle(IpcChannels.DB_SEARCH_HISTORY, async (event, { action, data }) => {
+    try {
+      switch (action) {
+        case DBActions.GENERAL.FIND:
+          return await baseHandlers.searchHistory.find()
+
+        case DBActions.GENERAL.UPSERT:
+          await baseHandlers.searchHistory.upsert(data)
+          syncOtherWindows(
+            IpcChannels.SYNC_SEARCH_HISTORY,
+            event,
+            { event: SyncEvents.GENERAL.UPSERT, data }
+          )
+          return null
+
+        case DBActions.GENERAL.DELETE:
+          await baseHandlers.searchHistory.delete(data)
+          syncOtherWindows(
+            IpcChannels.SYNC_SEARCH_HISTORY,
+            event,
+            { event: SyncEvents.GENERAL.DELETE, data }
+          )
+          return null
+
+        case DBActions.GENERAL.DELETE_ALL:
+          await baseHandlers.searchHistory.deleteAll()
+          syncOtherWindows(
+            IpcChannels.SYNC_SEARCH_HISTORY,
+            event,
+            { event: SyncEvents.GENERAL.DELETE_ALL }
+          )
+          return null
+
+        default:
+          // eslint-disable-next-line no-throw-literal
+          throw 'invalid search history db action'
+      }
+    } catch (err) {
+      if (typeof err === 'string') throw err
+      else throw err.toString()
+    }
+  })
+
   // *********** //
   // Profiles
   ipcMain.handle(IpcChannels.DB_SUBSCRIPTION_CACHE, async (event, { action, data }) => {
@@ -1328,7 +1543,7 @@ function runApp() {
           return await baseHandlers.subscriptionCache.find()
 
         case DBActions.SUBSCRIPTION_CACHE.UPDATE_VIDEOS_BY_CHANNEL:
-          await baseHandlers.subscriptionCache.updateVideosByChannelId(data)
+          await baseHandlers.subscriptionCache.updateVideosByChannelId(data.channelId, data.entries, data.timestamp)
           syncOtherWindows(
             IpcChannels.SYNC_SUBSCRIPTION_CACHE,
             event,
@@ -1337,7 +1552,7 @@ function runApp() {
           return null
 
         case DBActions.SUBSCRIPTION_CACHE.UPDATE_LIVE_STREAMS_BY_CHANNEL:
-          await baseHandlers.subscriptionCache.updateLiveStreamsByChannelId(data)
+          await baseHandlers.subscriptionCache.updateLiveStreamsByChannelId(data.channelId, data.entries, data.timestamp)
           syncOtherWindows(
             IpcChannels.SYNC_SUBSCRIPTION_CACHE,
             event,
@@ -1346,7 +1561,7 @@ function runApp() {
           return null
 
         case DBActions.SUBSCRIPTION_CACHE.UPDATE_SHORTS_BY_CHANNEL:
-          await baseHandlers.subscriptionCache.updateShortsByChannelId(data)
+          await baseHandlers.subscriptionCache.updateShortsByChannelId(data.channelId, data.entries, data.timestamp)
           syncOtherWindows(
             IpcChannels.SYNC_SUBSCRIPTION_CACHE,
             event,
@@ -1355,7 +1570,7 @@ function runApp() {
           return null
 
         case DBActions.SUBSCRIPTION_CACHE.UPDATE_SHORTS_WITH_CHANNEL_PAGE_SHORTS_BY_CHANNEL:
-          await baseHandlers.subscriptionCache.updateShortsWithChannelPageShortsByChannelId(data)
+          await baseHandlers.subscriptionCache.updateShortsWithChannelPageShortsByChannelId(data.channelId, data.entries)
           syncOtherWindows(
             IpcChannels.SYNC_SUBSCRIPTION_CACHE,
             event,
@@ -1364,7 +1579,7 @@ function runApp() {
           return null
 
         case DBActions.SUBSCRIPTION_CACHE.UPDATE_COMMUNITY_POSTS_BY_CHANNEL:
-          await baseHandlers.subscriptionCache.updateCommunityPostsByChannelId(data)
+          await baseHandlers.subscriptionCache.updateCommunityPostsByChannelId(data.channelId, data.entries, data.timestamp)
           syncOtherWindows(
             IpcChannels.SYNC_SUBSCRIPTION_CACHE,
             event,
@@ -1419,6 +1634,7 @@ function runApp() {
   app.on('window-all-closed', () => {
     // Clean up resources (datastores' compaction + Electron cache and storage data clearing)
     cleanUpResources().finally(() => {
+      mainWindow = null
       if (process.platform !== 'darwin') {
         app.quit()
       }
@@ -1488,6 +1704,7 @@ function runApp() {
       mainWindow.webContents.send(IpcChannels.OPEN_URL, baseUrl(url))
     } else {
       startupUrl = baseUrl(url)
+      if (app.isReady()) createWindow()
     }
   })
 
@@ -1566,6 +1783,24 @@ function runApp() {
     const hidePlaylists = (await sidenavSettings.hidePlaylists)?.value
 
     const template = [
+      ...process.platform === 'darwin'
+        ? [
+            {
+              label: app.getName(),
+              submenu: [
+                { role: 'about' },
+                { type: 'separator' },
+                { role: 'services' },
+                { type: 'separator' },
+                { role: 'hide' },
+                { role: 'hideothers' },
+                { role: 'unhide' },
+                { type: 'separator' },
+                { role: 'quit' }
+              ]
+            }
+          ]
+        : [],
       {
         label: 'File',
         submenu: [
@@ -1670,6 +1905,20 @@ function runApp() {
             },
             type: 'normal',
           },
+          ...(process.platform === 'darwin'
+            ? [
+                {
+                  label: 'Back',
+                  accelerator: KeyboardShortcuts.APP.GENERAL.HISTORY_BACKWARD_ALT_MAC,
+                  click: (_menuItem, browserWindow, _event) => {
+                    if (browserWindow == null) { return }
+
+                    browserWindow.webContents.navigationHistory.goBack()
+                  },
+                  visible: false,
+                },
+              ]
+            : []),
           {
             label: 'Forward',
             accelerator: 'Alt+Right',
@@ -1680,6 +1929,20 @@ function runApp() {
             },
             type: 'normal',
           },
+          ...(process.platform === 'darwin'
+            ? [
+                {
+                  label: 'Forward',
+                  accelerator: KeyboardShortcuts.APP.GENERAL.HISTORY_FORWARD_ALT_MAC,
+                  click: (_menuItem, browserWindow, _event) => {
+                    if (browserWindow == null) { return }
+
+                    browserWindow.webContents.navigationHistory.goForward()
+                  },
+                  visible: false,
+                },
+              ]
+            : []),
         ]
       },
       {
@@ -1745,31 +2008,15 @@ function runApp() {
           { role: 'minimize' },
           { role: 'close' }
         ]
-      }
+      },
+      ...process.platform === 'darwin'
+        ? [
+            { role: 'window' },
+            { role: 'help' },
+            { role: 'services' }
+          ]
+        : []
     ]
-
-    if (process.platform === 'darwin') {
-      template.unshift({
-        label: app.getName(),
-        submenu: [
-          { role: 'about' },
-          { type: 'separator' },
-          { role: 'services' },
-          { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideothers' },
-          { role: 'unhide' },
-          { type: 'separator' },
-          { role: 'quit' }
-        ]
-      })
-
-      template.push(
-        { role: 'window' },
-        { role: 'help' },
-        { role: 'services' }
-      )
-    }
 
     const menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(menu)

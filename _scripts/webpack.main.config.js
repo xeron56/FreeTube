@@ -5,6 +5,7 @@ const JsonMinimizerPlugin = require('json-minimizer-webpack-plugin')
 
 const isDevMode = process.env.NODE_ENV === 'development'
 
+/** @type {import('webpack').Configuration} */
 const config = {
   name: 'main',
   mode: process.env.NODE_ENV,
@@ -40,6 +41,7 @@ const config = {
   },
   plugins: [
     new webpack.DefinePlugin({
+      'process.platform': `'${process.platform}'`,
       'process.env.IS_ELECTRON_MAIN': true
     })
   ],
@@ -54,15 +56,15 @@ const config = {
 if (!isDevMode) {
   config.plugins.push(
     new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: path.join(__dirname, '../static'),
-            to: path.join(__dirname, '../dist/static'),
-            globOptions: {
-              dot: true,
-              ignore: ['**/.*', '**/locales/**', '**/pwabuilder-sw.js', '**/manifest.json', '**/dashFiles/**', '**/storyboards/**'],
-            },
+      patterns: [
+        {
+          from: path.join(__dirname, '../static'),
+          to: path.join(__dirname, '../dist/static'),
+          globOptions: {
+            dot: true,
+            ignore: ['**/.*', '**/locales/**', '**/pwabuilder-sw.js', '**/manifest.json', '**/dashFiles/**', '**/storyboards/**'],
           },
+        },
       ]
     })
   )

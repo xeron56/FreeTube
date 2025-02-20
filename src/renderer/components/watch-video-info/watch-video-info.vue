@@ -6,6 +6,12 @@
       >
         {{ title }}
       </h1>
+      <div
+        v-if="isUnlisted"
+        class="unlistedBadge"
+      >
+        {{ $t('Video.Unlisted') }}
+      </div>
     </div>
     <div class="videoMetrics">
       <div class="datePublishedAndViewCount">
@@ -83,7 +89,6 @@
           v-if="showPlaylists && !isUpcoming"
           :title="$t('User Playlists.Add to Playlist')"
           :icon="['fas', 'plus']"
-          class="option"
           theme="base"
           @click="togglePlaylistPrompt"
         />
@@ -102,7 +107,6 @@
           v-if="externalPlayer !== ''"
           :title="$t('Video.External Player.OpenInTemplate', { externalPlayer })"
           :icon="['fas', 'external-link-alt']"
-          class="option"
           theme="secondary"
           @click="handleExternalPlayer"
         />
@@ -110,7 +114,6 @@
           v-if="!isUpcoming && downloadLinks.length > 0"
           ref="downloadButton"
           :title="$t('Video.Download Video')"
-          class="option"
           theme="secondary"
           :icon="['fas', 'download']"
           :return-index="true"
@@ -120,7 +123,6 @@
         <ft-icon-button
           v-if="!isUpcoming"
           :title="$t('Change Format.Change Media Formats')"
-          class="option"
           theme="secondary"
           :icon="['fas', 'file-video']"
           :dropdown-options="formatTypeOptions"
@@ -131,7 +133,6 @@
           :id="id"
           :get-timestamp="getTimestamp"
           :playlist-id="playlistId"
-          class="option"
         />
       </div>
     </div>
@@ -139,4 +140,4 @@
 </template>
 
 <script src="./watch-video-info.js" />
-<style scoped src="./watch-video-info.scss" lang="scss" />
+<style scoped src="./watch-video-info.css" />
